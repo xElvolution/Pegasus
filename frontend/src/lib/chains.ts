@@ -1,15 +1,11 @@
-export const XLAYER_TESTNET = {
+import { defineChain } from "viem";
+
+export const xLayerTestnet = defineChain({
   id: 1952,
   name: "X Layer Testnet",
-  nativeCurrency: {
-    name: "OKB",
-    symbol: "OKB",
-    decimals: 18,
-  },
+  nativeCurrency: { name: "OKB", symbol: "OKB", decimals: 18 },
   rpcUrls: {
-    default: {
-      http: ["https://testrpc.xlayer.tech"],
-    },
+    default: { http: ["https://testrpc.xlayer.tech"] },
   },
   blockExplorers: {
     default: {
@@ -18,29 +14,9 @@ export const XLAYER_TESTNET = {
     },
   },
   testnet: true,
-} as const;
+});
 
-export const XLAYER_MAINNET = {
-  id: 196,
-  name: "X Layer",
-  nativeCurrency: {
-    name: "OKB",
-    symbol: "OKB",
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://rpc.xlayer.tech"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "OKX Explorer",
-      url: "https://www.okx.com/en-us/web3/explorer/xlayer",
-    },
-  },
-  testnet: false,
-} as const;
+export const XLAYER_TESTNET = xLayerTestnet;
 
 export const CONTRACTS = {
   PEGASUS_HOOK: (process.env.NEXT_PUBLIC_PEGASUS_HOOK ?? "0x0000000000000000000000000000000000000000") as `0x${string}`,
