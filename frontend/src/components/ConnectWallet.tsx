@@ -5,6 +5,15 @@ import { usePrivy } from "@privy-io/react-auth";
 export function ConnectWallet() {
   const { ready, authenticated, login, logout, user } = usePrivy();
 
+  // Fallback if Privy not configured
+  if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
+    return (
+      <div className="px-4 py-2 text-xs font-sans tracking-ultrawide uppercase bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">
+        PRIVY APP ID MISSING
+      </div>
+    );
+  }
+
   if (!ready) {
     return (
       <button

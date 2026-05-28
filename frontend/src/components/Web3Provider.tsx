@@ -18,9 +18,22 @@ const wagmiConfig = createConfig({
 const queryClient = new QueryClient();
 
 export function Web3Provider({ children }: { children: ReactNode }) {
+  const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID || "";
+
+  // If no Privy App ID, render without Privy (build will succeed, but connect won't work)
+  if (!privyAppId) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={wagmiConfig}>
+          {children}
+        </WagmiProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <PrivyProvider
-      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
+      appId={privyAppId}
       config={{
         appearance: {
           theme: "dark",
