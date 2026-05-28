@@ -85,6 +85,11 @@ export default function PoolPage() {
     if (isConfirmed) refetchSnapshots();
   }, [isConfirmed, refetchSnapshots]);
 
+  // Clear stale tx hash when user changes inputs
+  useEffect(() => {
+    setLastTxHash(undefined);
+  }, [mintAmount, lpAmount]);
+
   async function handleMint(token: `0x${string}`) {
     if (!address) return;
     let parsed: bigint;

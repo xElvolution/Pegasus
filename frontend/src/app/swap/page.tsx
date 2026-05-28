@@ -45,6 +45,14 @@ export default function SwapPage() {
   const [needsApproval, setNeedsApproval] = useState(false);
   const [lastTxHash, setLastTxHash] = useState<`0x${string}` | undefined>();
 
+  // Parsed input amount as bigint (0n if invalid)
+  let parsedAmount: bigint = 0n;
+  try {
+    parsedAmount = parseEther(amount || "0");
+  } catch {
+    parsedAmount = 0n;
+  }
+
   const fromToken = zeroForOne ? CONTRACTS.TOKEN_A : CONTRACTS.TOKEN_B;
   const toToken = zeroForOne ? CONTRACTS.TOKEN_B : CONTRACTS.TOKEN_A;
 
@@ -101,13 +109,16 @@ export default function SwapPage() {
   }, [isConfirmed, refetchBalances]);
 
   useEffect(() => {
-    try {
-      const want = parseEther(amount || "0");
-      setNeedsApproval(allowance < want);
-    } catch {
-      setNeedsApproval(false);
-    }
-  }, [amount, allowance]);
+    setNeedsApproval(allowance < parsedAmount && parsedAmount > 0n);
+  }, [parsedAmount, allowance]);
+
+  // Clear stale tx hash when user changes input/direction
+  useEffect(() => {
+    setLastTxHash(undefined);
+  }, [amount, zeroForOne]);
+
+  const hasInsufficientBalance = parsedAmount > 0n && parsedAmount > balance;
+  const amountIsZero = parsedAmount === 0n;
 
   async function handleApprove() {
     if (!address) return;
@@ -301,10 +312,14 @@ export default function SwapPage() {
                 {needsApproval ? (
                   <button
                     onClick={handleApprove}
-                    disabled={!isConnected || wrongNetwork || isWriting || isConfirming}
-                    className="w-full border border-purple-glow text-purple-glow py-4 font-sans text-xs tracking-ultrawide uppercase hover:bg-purple-glow/10 transition-colors disabled:opacity-30"
+                    disabled={!isConnected || wrongNetwork || isWriting || isConfirming || amountIsZero || hasInsufficientBalance}
+                    className="w-full border border-purple-glow text-purple-glow py-4 font-sans text-xs tracking-ultrawide uppercase hover:bg-purple-glow/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    {isWriting || isConfirming
+                    {hasInsufficientBalance
+                      ? `INSUFFICIENT ${fromSymbol} BALANCE`
+                      : amountIsZero
+                      ? "ENTER AN AMOUNT"
+                      : isWriting || isConfirming
                       ? "APPROVING…"
                       : `APPROVE ${fromSymbol}`}
                   </button>
@@ -316,11 +331,19 @@ export default function SwapPage() {
                       wrongNetwork ||
                       !isConfigured ||
                       isWriting ||
-                      isConfirming
+                      isConfirming ||
+                      amountIsZero ||
+                      hasInsufficientBalance
                     }
-                    className="w-full bg-purple-glow text-pegasus-dark py-4 font-sans text-xs tracking-ultrawide uppercase hover:bg-purple-glow/90 transition-colors disabled:opacity-30"
+                    className="w-full bg-purple-glow text-pegasus-dark py-4 font-sans text-xs tracking-ultrawide uppercase hover:bg-purple-glow/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    {isWriting || isConfirming ? "SWAPPING…" : "SWAP"}
+                    {hasInsufficientBalance
+                      ? `INSUFFICIENT ${fromSymbol} BALANCE`
+                      : amountIsZero
+                      ? "ENTER AN AMOUNT"
+                      : isWriting || isConfirming
+                      ? "SWAPPING…"
+                      : "SWAP"}
                   </button>
                 )}
               </div>
