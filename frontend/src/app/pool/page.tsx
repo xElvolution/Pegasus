@@ -151,7 +151,7 @@ export default function PoolPage() {
   return (
     <main className="bg-pegasus-dark text-white min-h-screen">
       <Navigation />
-      <section className="pt-32 pb-12 px-6 md:px-12">
+      <section className="pt-28 md:pt-32 pb-12 px-4 sm:px-6 md:px-12">
         <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -211,7 +211,7 @@ export default function PoolPage() {
             <p className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40 mb-6">
               STEP 1 · MINT TEST TOKENS
             </p>
-            <div className="border border-white/10 bg-white/[0.02] p-6 space-y-6">
+            <div className="border border-white/10 bg-white/[0.02] p-5 md:p-6 space-y-5 md:space-y-6">
               <div className="flex items-baseline gap-4">
                 <input
                   type="text"
@@ -262,7 +262,7 @@ export default function PoolPage() {
             <p className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40 mb-6">
               STEP 2 · ADD LIQUIDITY
             </p>
-            <div className="border border-white/10 bg-white/[0.02] p-6 space-y-6">
+            <div className="border border-white/10 bg-white/[0.02] p-5 md:p-6 space-y-5 md:space-y-6">
               <div>
                 <p className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40 mb-3">
                   LIQUIDITY UNITS

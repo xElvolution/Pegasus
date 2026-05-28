@@ -154,7 +154,7 @@ export default function SwapPage() {
   return (
     <main className="bg-pegasus-dark text-white min-h-screen">
       <Navigation />
-      <section className="pt-32 pb-12 px-6 md:px-12">
+      <section className="pt-28 md:pt-32 pb-12 px-4 sm:px-6 md:px-12">
         <div className="max-w-2xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -214,7 +214,7 @@ export default function SwapPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="border-t border-white/10 pt-12"
           >
-            <div className="border border-white/10 bg-white/[0.02] p-8 space-y-8">
+            <div className="border border-white/10 bg-white/[0.02] p-5 md:p-8 space-y-6 md:space-y-8">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <span className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40">
@@ -232,10 +232,10 @@ export default function SwapPage() {
                     onChange={(e) =>
                       setAmount(e.target.value.replace(/[^0-9.]/g, ""))
                     }
-                    className="flex-1 bg-transparent font-serif text-5xl font-light leading-none focus:outline-none"
+                    className="flex-1 min-w-0 bg-transparent font-serif text-3xl md:text-5xl font-light leading-none focus:outline-none"
                     placeholder="0"
                   />
-                  <span className="font-serif text-2xl text-white/70">
+                  <span className="font-serif text-xl md:text-2xl text-white/70">
                     {fromSymbol}
                   </span>
                 </div>
@@ -260,16 +260,16 @@ export default function SwapPage() {
                   </span>
                 </div>
                 <div className="flex items-baseline gap-4">
-                  <span className="flex-1 font-serif text-5xl font-light leading-none text-white/30">
+                  <span className="flex-1 min-w-0 truncate font-serif text-3xl md:text-5xl font-light leading-none text-white/30">
                     {amount || "0"}
                   </span>
-                  <span className="font-serif text-2xl text-white/70">
+                  <span className="font-serif text-xl md:text-2xl text-white/70">
                     {toSymbol}
                   </span>
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-6 grid grid-cols-3 gap-4">
+              <div className="border-t border-white/10 pt-6 grid grid-cols-3 gap-3 md:gap-4">
                 <div>
                   <p className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40 mb-1">
                     DYNAMIC FEE

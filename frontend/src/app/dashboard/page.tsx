@@ -96,7 +96,7 @@ export default function DashboardPage() {
     <main className="bg-pegasus-dark text-white min-h-screen">
       <Navigation />
 
-      <section className="pt-32 pb-12 px-6 md:px-12">
+      <section className="pt-28 md:pt-32 pb-12 px-4 sm:px-6 md:px-12">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
