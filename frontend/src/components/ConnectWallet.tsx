@@ -1,9 +1,14 @@
 "use client";
 
 import { usePrivy } from "@privy-io/react-auth";
+import { useEffect, useState } from "react";
 
 export function ConnectWallet() {
-  const { ready, authenticated, login, logout, user } = usePrivy();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fallback if Privy not configured
   if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
@@ -13,6 +18,24 @@ export function ConnectWallet() {
       </div>
     );
   }
+
+  // Don't render until mounted (avoid SSR mismatch)
+  if (!mounted) {
+    return (
+      <button
+        disabled
+        className="px-4 py-2 text-xs font-sans tracking-ultrawide uppercase bg-white/10 text-white/40 cursor-not-allowed"
+      >
+        LOADING...
+      </button>
+    );
+  }
+
+  return <ConnectWalletInner />;
+}
+
+function ConnectWalletInner() {
+  const { ready, authenticated, login, logout, user } = usePrivy();
 
   if (!ready) {
     return (
