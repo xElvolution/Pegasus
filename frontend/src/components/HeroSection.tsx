@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export function HeroSection() {
   return (
@@ -12,6 +13,24 @@ export function HeroSection() {
           style={{ filter: "blur(120px)" }}
         />
       </div>
+
+      {/* Pegasus image — centered behind text */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center z-[2] pointer-events-none"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 0.25, scale: 1 }}
+        transition={{ duration: 2, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
+        <Image
+          src="/pegasus.png"
+          alt=""
+          width={700}
+          height={700}
+          className="object-contain"
+          priority
+          aria-hidden="true"
+        />
+      </motion.div>
 
       {/* Vignette */}
       <div className="absolute inset-0 bg-gradient-to-t from-pegasus-dark via-transparent to-pegasus-dark/40 z-[2]" />

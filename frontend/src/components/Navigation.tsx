@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ConnectWallet } from "./ConnectWallet";
 
@@ -18,9 +19,17 @@ export function Navigation() {
     <nav className="fixed top-0 left-0 w-full z-50 px-6 md:px-12 py-5 flex items-center justify-between backdrop-blur-sm bg-pegasus-dark/60 border-b border-white/5">
       <Link
         href="/"
-        className="font-serif text-xl tracking-widest uppercase font-light"
+        className="flex items-center gap-3 font-serif text-xl tracking-widest uppercase font-light"
       >
-        Pegasus
+        <Image
+          src="/logo.png"
+          alt="Pegasus"
+          width={32}
+          height={32}
+          className="object-contain"
+          priority
+        />
+        <span>Pegasus</span>
       </Link>
       <div className="flex items-center gap-6 md:gap-10">
         {links.map((link) => {

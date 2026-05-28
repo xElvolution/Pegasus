@@ -23,6 +23,31 @@ export const metadata: Metadata = {
   title: "Pegasus · Adaptive Dynamic Fees for Uniswap V4",
   description:
     "Uniswap gave you the unicorn. We gave it wings. AI-powered dynamic fee optimization on X Layer.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+    other: [
+      { rel: "icon", url: "/android-chrome-192x192.png", sizes: "192x192" },
+      { rel: "icon", url: "/android-chrome-512x512.png", sizes: "512x512" },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  openGraph: {
+    title: "Pegasus · Adaptive Dynamic Fees for Uniswap V4",
+    description: "Uniswap gave you the unicorn. We gave it wings. Live on X Layer testnet.",
+    images: [{ url: "/banner.png", width: 1500, height: 500, alt: "Pegasus" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pegasus · Adaptive Dynamic Fees for Uniswap V4",
+    description: "Uniswap gave you the unicorn. We gave it wings. Live on X Layer testnet.",
+    images: ["/banner.png"],
+  },
 };
 
 export default function RootLayout({

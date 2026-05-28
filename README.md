@@ -1,3 +1,11 @@
+<p align="center">
+  <img src="./frontend/public/banner.png" alt="Pegasus — Adaptive Dynamic Fees for Uniswap V4" width="100%" />
+</p>
+
+<p align="center">
+  <img src="./frontend/public/logo.png" alt="Pegasus" width="120" />
+</p>
+
 # Pegasus — Adaptive Dynamic Fees for Uniswap V4 on X Layer
 
 Pegasus is a Uniswap V4 hook that adjusts LP fees dynamically based on real-time
