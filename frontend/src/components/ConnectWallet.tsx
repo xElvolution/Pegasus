@@ -2,6 +2,8 @@
 
 import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
+import { useAccount, useSwitchChain } from "wagmi";
+import { xLayerTestnet } from "@/lib/chains";
 
 export function ConnectWallet() {
   const [mounted, setMounted] = useState(false);
@@ -10,7 +12,6 @@ export function ConnectWallet() {
     setMounted(true);
   }, []);
 
-  // Fallback if Privy not configured
   if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
     return (
       <div className="px-4 py-2 text-xs font-sans tracking-ultrawide uppercase bg-yellow-500/20 text-yellow-500 border border-yellow-500/30">
@@ -19,7 +20,6 @@ export function ConnectWallet() {
     );
   }
 
-  // Don't render until mounted (avoid SSR mismatch)
   if (!mounted) {
     return (
       <button
@@ -36,6 +36,8 @@ export function ConnectWallet() {
 
 function ConnectWalletInner() {
   const { ready, authenticated, login, logout, user } = usePrivy();
+  const { chainId, isConnected } = useAccount();
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
 
   if (!ready) {
     return (
@@ -44,6 +46,18 @@ function ConnectWalletInner() {
         className="px-4 py-2 text-xs font-sans tracking-ultrawide uppercase bg-white/10 text-white/40 cursor-not-allowed"
       >
         LOADING...
+      </button>
+    );
+  }
+
+  if (authenticated && isConnected && chainId !== xLayerTestnet.id) {
+    return (
+      <button
+        onClick={() => switchChain({ chainId: xLayerTestnet.id })}
+        disabled={isSwitching}
+        className="px-4 py-2 text-xs font-sans tracking-ultrawide uppercase bg-yellow-500 text-pegasus-dark hover:bg-yellow-400 transition-colors disabled:opacity-50"
+      >
+        {isSwitching ? "SWITCHING..." : "SWITCH TO X LAYER"}
       </button>
     );
   }
