@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Hardhat
+cache/
+artifacts/
+typechain/
+typechain-types/
+
+# Coverage
+coverage/
+coverage.json
+
+# Deployments (local only — keep network-specific deployments)
+deployments/localhost/
+.openzeppelin/unknown-*.json
+
+# Environment / secrets
+.env
+.env.local
+*.pem
+*.key
+secrets.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Misc
+.cache/
+tmp/

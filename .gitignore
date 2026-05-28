@@ -1,0 +1,18 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Catch-all for any env file in any subdir
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets.json
+
+# Node
+node_modules/
+*.log

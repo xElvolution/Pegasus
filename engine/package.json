@@ -1,0 +1,14 @@
+{
+  "name": "pegasus-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Off-chain AI/analytics engine for Pegasus dynamic fee hook",
+  "scripts": {
+    "start": "node index.js",
+    "monitor": "node monitor.js"
+  },
+  "dependencies": {
+    "ethers": "^6.13.0",
+    "dotenv": "^16.4.0"
+  }
+}
