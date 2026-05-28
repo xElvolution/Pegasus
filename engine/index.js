@@ -147,12 +147,9 @@ class PegasusEngine {
   }
 
   subscribeEvents() {
-    this.hook.on("FeeUpdated", (poolId, oldFee, newFee, reason) => {
-      console.log(`[event] FeeUpdated  ${oldFee} → ${newFee}  (${reason})`);
-    });
-    this.hook.on("SwapAnalyzed", (poolId, volatility, consec, blockSwaps, fee) => {
-      console.log(`[event] SwapAnalyzed  vol=${volatility} consec=${consec} blockSwaps=${blockSwaps} fee=${fee}`);
-    });
+    // X Layer RPC doesn't whitelist eth_newFilter, so we skip event subscriptions.
+    // The main tick loop already reads on-chain state every UPDATE_INTERVAL_MS.
+    console.log("Event subscriptions skipped (X Layer RPC limitation — polling via tick loop instead).");
   }
 
   async run(intervalMs) {
