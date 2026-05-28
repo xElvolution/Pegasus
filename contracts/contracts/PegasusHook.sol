@@ -141,6 +141,9 @@ contract PegasusHook is IHooks {
         PoolId poolId = key.toId();
         PoolState storage state = poolStates[poolId];
 
+        // Always track swap metrics, regardless of fee source (oracle vs adaptive)
+        _trackSwapMetrics(state, params, poolId);
+
         // If oracle override is active, use oracle fee
         if (oracleOverrideActive[poolId]) {
             uint24 oFee = oracleOverrideFee[poolId];
@@ -167,6 +170,27 @@ contract PegasusHook is IHooks {
             BeforeSwapDeltaLibrary.ZERO_DELTA,
             newFee | LPFeeLibrary.OVERRIDE_FEE_FLAG
         );
+    }
+
+    function _trackSwapMetrics(PoolState storage state, SwapParams calldata params, PoolId poolId) internal {
+        // Per-block swap count
+        if (block.number != state.lastBlockNumber) {
+            state.lastBlockSwapCount = 1;
+            state.lastBlockNumber = block.number;
+        } else {
+            state.lastBlockSwapCount++;
+        }
+
+        // Consecutive same-direction tracking
+        bool currentDirection = params.zeroForOne;
+        if (state.swapCount > 0 && currentDirection == state.lastDirection) {
+            state.consecutiveSameDirection++;
+        } else {
+            state.consecutiveSameDirection = 1;
+        }
+        state.lastDirection = currentDirection;
+
+        state.swapCount++;
     }
 
     function afterSwap(address, PoolKey calldata, SwapParams calldata, BalanceDelta, bytes calldata)
@@ -198,7 +222,7 @@ contract PegasusHook is IHooks {
     function _calculateDynamicFee(
         PoolId poolId,
         PoolState storage state,
-        SwapParams calldata params
+        SwapParams calldata /* params */
     ) internal returns (uint24) {
         uint24 fee = BASE_FEE;
 
@@ -209,27 +233,14 @@ contract PegasusHook is IHooks {
             fee = uint24((uint256(fee) * volMultiplier) / 100);
         }
 
-        // 2. MEV detection — consecutive same-direction swaps
-        bool currentDirection = params.zeroForOne;
-        if (currentDirection == state.lastDirection) {
-            state.consecutiveSameDirection++;
-        } else {
-            state.consecutiveSameDirection = 1;
-        }
-        state.lastDirection = currentDirection;
-
+        // 2. MEV detection — surge if consecutive same-direction threshold hit
+        // (counter is updated in _trackSwapMetrics, called before this)
         if (state.consecutiveSameDirection >= MEV_CONSECUTIVE_THRESHOLD) {
             fee = fee + MEV_FEE_SURGE;
         }
 
         // 3. Volume spike — many swaps in one block
-        if (block.number == state.lastBlockNumber) {
-            state.lastBlockSwapCount++;
-        } else {
-            state.lastBlockNumber = block.number;
-            state.lastBlockSwapCount = 1;
-        }
-
+        // (counter is updated in _trackSwapMetrics)
         if (state.lastBlockSwapCount > 3) {
             fee = fee + uint24(state.lastBlockSwapCount * 200);
         }
@@ -237,8 +248,6 @@ contract PegasusHook is IHooks {
         // 4. Clamp to bounds
         if (fee < MIN_FEE) fee = MIN_FEE;
         if (fee > MAX_FEE) fee = MAX_FEE;
-
-        state.swapCount++;
 
         emit SwapAnalyzed(
             poolId,

@@ -54,16 +54,16 @@ premium that gets redistributed to liquidity providers instead of extracted.
 
 | Contract | Address |
 |---|---|
-| **PegasusHook** | [`0x5eC95C19730eb31F8eE453b76A844Faf89bAe080`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x5eC95C19730eb31F8eE453b76A844Faf89bAe080) |
+| **PegasusHook** | [`0x09988bc8333CB0f40E7619bf3F1BD055c2D1E080`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x09988bc8333CB0f40E7619bf3F1BD055c2D1E080) |
 | PoolManager | [`0x7CbaA76c870fFB49bb7567b8da7f7433feC1b949`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x7CbaA76c870fFB49bb7567b8da7f7433feC1b949) |
 | PoolSwapTest | [`0x3ed13A53F0B63070740AE8700708201f1D0Dd7D8`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x3ed13A53F0B63070740AE8700708201f1D0Dd7D8) |
 | PoolModifyLiquidityTest | [`0xB4672c08921d3Ea6A835d08a7BD17535d2EecB28`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0xB4672c08921d3Ea6A835d08a7BD17535d2EecB28) |
 | PEGB (currency0) | [`0x1033e20584B3e8DF7705253F7698c31b592bD4BD`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x1033e20584B3e8DF7705253F7698c31b592bD4BD) |
 | PEGA (currency1) | [`0xE95AA4A81368741194265F2b1ABa29E3ba8FE32D`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0xE95AA4A81368741194265F2b1ABa29E3ba8FE32D) |
 
-**PoolId:** `0x9ab6224bcd2baa0a755dd0c37717df301875087cc641f540133220169fef9957`
+**PoolId:** `0x6023082d3febb10234255fd8c3a6e335dfd7e0938bd2bf299cb86c5018bac836`
 
-**First swap proving the hook fires:** [`0xdf907d...`](https://www.okx.com/en-us/web3/explorer/xlayer-test/tx/0xdf907d256f8f6786d752418fa61edb31187a7018f3b9e5a3b3fcae01e04681d3)
+**First swap proving the hook fires:** [`0x176e9f...`](https://www.okx.com/en-us/web3/explorer/xlayer-test/tx/0x176e9f49e1aada8fe50df9431ed32b34b4291bde99b7ddbc8df29580b76bf27d)
 
 ## Architecture
 
