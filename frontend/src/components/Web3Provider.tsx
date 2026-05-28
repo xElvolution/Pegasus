@@ -6,7 +6,7 @@ import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http } from "viem";
 import { createConfig } from "wagmi";
-import { xLayerTestnet } from "./chains";
+import { xLayerTestnet } from "@/lib/chains";
 
 const wagmiConfig = createConfig({
   chains: [xLayerTestnet],
