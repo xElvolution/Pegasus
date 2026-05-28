@@ -6,6 +6,16 @@
   <img src="./frontend/public/logo.png" alt="Pegasus" width="120" />
 </p>
 
+<p align="center">
+  <a href="https://pegasus-xlayer.vercel.app/swap"><b>Live dApp</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://youtu.be/5bjkO-TjEE4"><b>Demo Video</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/xElvolution/Pegasus"><b>GitHub</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x09988bc8333CB0f40E7619bf3F1BD055c2D1E080"><b>Hook on Explorer</b></a>
+</p>
+
 # Pegasus — Adaptive Dynamic Fees for Uniswap V4 on X Layer
 
 Pegasus is a Uniswap V4 hook that adjusts LP fees dynamically based on real-time
