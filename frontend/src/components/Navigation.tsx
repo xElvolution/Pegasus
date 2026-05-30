@@ -49,8 +49,8 @@ export function Navigation() {
           <span>Pegasus</span>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-6 lg:gap-10">
+        {/* Desktop nav (≥1024px only — below that we use the hamburger drawer) */}
+        <div className="hidden lg:flex items-center gap-6 lg:gap-10">
           {links.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -68,10 +68,10 @@ export function Navigation() {
           <ConnectWallet />
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Hamburger (everything below 1024px — phones AND tablets) */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden flex flex-col gap-1.5 p-2 -mr-2"
+          className="lg:hidden flex flex-col gap-1.5 p-2 -mr-2"
           aria-label="Toggle menu"
         >
           <span
@@ -92,9 +92,9 @@ export function Navigation() {
         </button>
       </nav>
 
-      {/* Mobile menu drawer */}
+      {/* Mobile/tablet menu drawer */}
       <div
-        className={`md:hidden fixed inset-0 z-40 bg-pegasus-dark/95 backdrop-blur-md transition-opacity duration-300 ${
+        className={`lg:hidden fixed inset-0 z-40 bg-pegasus-dark/95 backdrop-blur-md transition-opacity duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
