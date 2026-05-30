@@ -7,7 +7,9 @@ import { useState, useEffect } from "react";
 import { ConnectWallet } from "./ConnectWallet";
 
 const links = [
-  { href: "/#signals", label: "SIGNALS" },
+  { href: "/deploy", label: "DEPLOY" },
+  { href: "/create-pool", label: "CREATE" },
+  { href: "/explore", label: "EXPLORE" },
   { href: "/swap", label: "SWAP" },
   { href: "/pool", label: "POOL" },
   { href: "/dashboard", label: "DASHBOARD" },

@@ -1,15 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { useReadContract, useWatchContractEvent, useChainId, useAccount } from "wagmi";
 import { Navigation } from "@/components/Navigation";
 import { FeeChart } from "@/components/FeeChart";
 import { PoolMetrics } from "@/components/PoolMetrics";
 import { ConnectWallet } from "@/components/ConnectWallet";
-import { CONTRACTS, POOL_KEY, XLAYER_TESTNET } from "@/lib/chains";
+import { CONTRACTS, XLAYER_TESTNET } from "@/lib/chains";
 import { PEGASUS_HOOK_ABI } from "@/lib/abi";
+import { useActivePool } from "@/hooks/useActivePool";
 
 function formatFee(fee: number) {
   return (fee / 10000).toFixed(2) + "%";
@@ -23,9 +24,18 @@ function feeLabel(fee: number) {
 }
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<main className="bg-pegasus-dark min-h-screen" />}>
+      <DashboardPageInner />
+    </Suspense>
+  );
+}
+
+function DashboardPageInner() {
   const chainId = useChainId();
   const { isConnected } = useAccount();
   const feeRef = useRef<HTMLSpanElement>(null);
+  const { poolKey, poolId: customPoolId, isCustom } = useActivePool();
 
   const isHookConfigured =
     CONTRACTS.PEGASUS_HOOK !== "0x0000000000000000000000000000000000000000";
@@ -35,7 +45,7 @@ export default function DashboardPage() {
     address: CONTRACTS.PEGASUS_HOOK,
     abi: PEGASUS_HOOK_ABI,
     functionName: "getCurrentFee",
-    args: [POOL_KEY],
+    args: [poolKey],
     query: { enabled: isHookConfigured, refetchInterval: 5000 },
   });
 
@@ -43,7 +53,7 @@ export default function DashboardPage() {
     address: CONTRACTS.PEGASUS_HOOK,
     abi: PEGASUS_HOOK_ABI,
     functionName: "getPoolMetrics",
-    args: [POOL_KEY],
+    args: [poolKey],
     query: { enabled: isHookConfigured, refetchInterval: 5000 },
   });
 
@@ -107,6 +117,11 @@ export default function DashboardPage() {
             <div>
               <p className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40 mb-4">
                 LIVE / X LAYER TESTNET · CHAIN 1952
+                {isCustom && customPoolId && (
+                  <span className="ml-2 text-purple-glow">
+                    · CUSTOM POOL {customPoolId.slice(0, 10)}…
+                  </span>
+                )}
               </p>
               <h1 className="font-serif text-5xl md:text-7xl font-light leading-none">
                 dashboard

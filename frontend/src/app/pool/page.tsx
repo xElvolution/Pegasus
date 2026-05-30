@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   useAccount,
   useChainId,
@@ -12,18 +12,30 @@ import {
 import { parseEther, maxUint256, formatEther, zeroHash } from "viem";
 import { Navigation } from "@/components/Navigation";
 import { ConnectWallet } from "@/components/ConnectWallet";
-import { CONTRACTS, POOL_KEY, XLAYER_TESTNET } from "@/lib/chains";
+import { CONTRACTS, XLAYER_TESTNET } from "@/lib/chains";
 import {
   ERC20_ABI,
   POOL_MODIFY_LIQUIDITY_TEST_ABI,
 } from "@/lib/abi";
+import { useActivePool } from "@/hooks/useActivePool";
 
 const TICK_LOWER = -6000;
 const TICK_UPPER = 6000;
 
 export default function PoolPage() {
+  return (
+    <Suspense fallback={<main className="bg-pegasus-dark min-h-screen" />}>
+      <PoolPageInner />
+    </Suspense>
+  );
+}
+
+function PoolPageInner() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
+  const { poolKey, poolId, isCustom, isLoading: poolLoading, notFound } = useActivePool();
+  const TOKEN_0 = poolKey.currency0;
+  const TOKEN_1 = poolKey.currency1;
   const wrongNetwork = isConnected && chainId !== XLAYER_TESTNET.id;
   const isConfigured =
     CONTRACTS.PEGASUS_HOOK !== "0x0000000000000000000000000000000000000000" &&
@@ -37,19 +49,19 @@ export default function PoolPage() {
   const { data: snapshots, refetch: refetchSnapshots } = useReadContracts({
     contracts: [
       {
-        address: CONTRACTS.TOKEN_A,
+        address: TOKEN_0,
         abi: ERC20_ABI,
         functionName: "balanceOf",
         args: address ? [address] : undefined,
       },
       {
-        address: CONTRACTS.TOKEN_B,
+        address: TOKEN_1,
         abi: ERC20_ABI,
         functionName: "balanceOf",
         args: address ? [address] : undefined,
       },
       {
-        address: CONTRACTS.TOKEN_A,
+        address: TOKEN_0,
         abi: ERC20_ABI,
         functionName: "allowance",
         args: address
@@ -57,17 +69,17 @@ export default function PoolPage() {
           : undefined,
       },
       {
-        address: CONTRACTS.TOKEN_B,
+        address: TOKEN_1,
         abi: ERC20_ABI,
         functionName: "allowance",
         args: address
           ? [address, CONTRACTS.POOL_MODIFY_LIQUIDITY_TEST]
           : undefined,
       },
-      { address: CONTRACTS.TOKEN_A, abi: ERC20_ABI, functionName: "symbol" },
-      { address: CONTRACTS.TOKEN_B, abi: ERC20_ABI, functionName: "symbol" },
+      { address: TOKEN_0, abi: ERC20_ABI, functionName: "symbol" },
+      { address: TOKEN_1, abi: ERC20_ABI, functionName: "symbol" },
     ],
-    query: { enabled: isConfigured && !!address },
+    query: { enabled: isConfigured && !!address && !poolLoading },
   });
 
   const balanceA = (snapshots?.[0]?.result as bigint) ?? 0n;
@@ -136,7 +148,7 @@ export default function PoolPage() {
       address: CONTRACTS.POOL_MODIFY_LIQUIDITY_TEST,
       abi: POOL_MODIFY_LIQUIDITY_TEST_ABI,
       functionName: "modifyLiquidity",
-      args: [POOL_KEY, params, "0x", false, false],
+      args: [poolKey, params, "0x", false, false],
       gas: 5_000_000n,
     });
     setLastTxHash(hash);
@@ -166,6 +178,11 @@ export default function PoolPage() {
           >
             <p className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40 mb-4">
               02 / POOL · X LAYER TESTNET
+              {isCustom && poolId && (
+                <span className="ml-2 text-purple-glow">
+                  · CUSTOM POOL {poolId.slice(0, 10)}…
+                </span>
+              )}
             </p>
             <h1 className="font-serif text-5xl md:text-6xl font-light leading-none">
               pool
@@ -176,6 +193,11 @@ export default function PoolPage() {
             <div className="border border-purple-glow/30 bg-purple-glow/5 px-6 py-5 mb-8 font-mono text-xs text-white/70">
               Set NEXT_PUBLIC_POOL_MODIFY_LIQUIDITY_TEST + token addresses in
               frontend/.env.local first.
+            </div>
+          )}
+          {notFound && (
+            <div className="border border-yellow-500/30 bg-yellow-500/5 px-6 py-5 mb-8 font-mono text-xs text-white/70">
+              Pool {poolId?.slice(0, 10)}… not found in the on-chain registry. Showing default pool instead.
             </div>
           )}
           {wrongNetwork && (
@@ -233,14 +255,14 @@ export default function PoolPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <button
-                  onClick={() => handleMint(CONTRACTS.TOKEN_A)}
+                  onClick={() => handleMint(TOKEN_0)}
                   disabled={!isConnected || wrongNetwork || isWriting}
                   className="border border-white/10 py-3 font-sans text-xs tracking-ultrawide uppercase hover:border-purple-glow hover:text-purple-glow transition-colors disabled:opacity-30"
                 >
                   MINT {symA}
                 </button>
                 <button
-                  onClick={() => handleMint(CONTRACTS.TOKEN_B)}
+                  onClick={() => handleMint(TOKEN_1)}
                   disabled={!isConnected || wrongNetwork || isWriting}
                   className="border border-white/10 py-3 font-sans text-xs tracking-ultrawide uppercase hover:border-purple-glow hover:text-purple-glow transition-colors disabled:opacity-30"
                 >
@@ -287,7 +309,7 @@ export default function PoolPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => handleApprove(CONTRACTS.TOKEN_A)}
+                  onClick={() => handleApprove(TOKEN_0)}
                   disabled={
                     !isConnected ||
                     wrongNetwork ||
@@ -299,7 +321,7 @@ export default function PoolPage() {
                   {needApproveA ? `APPROVE ${symA}` : `${symA} APPROVED`}
                 </button>
                 <button
-                  onClick={() => handleApprove(CONTRACTS.TOKEN_B)}
+                  onClick={() => handleApprove(TOKEN_1)}
                   disabled={
                     !isConnected ||
                     wrongNetwork ||

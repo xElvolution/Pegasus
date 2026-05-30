@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   useAccount,
   useChainId,
@@ -15,7 +15,6 @@ import { Navigation } from "@/components/Navigation";
 import { ConnectWallet } from "@/components/ConnectWallet";
 import {
   CONTRACTS,
-  POOL_KEY,
   XLAYER_TESTNET,
 } from "@/lib/chains";
 import {
@@ -23,6 +22,7 @@ import {
   ERC20_ABI,
   POOL_SWAP_TEST_ABI,
 } from "@/lib/abi";
+import { useActivePool } from "@/hooks/useActivePool";
 
 const MIN_SQRT_PRICE = 4295128739n + 1n;
 const MAX_SQRT_PRICE =
@@ -33,8 +33,19 @@ function formatFee(fee: number) {
 }
 
 export default function SwapPage() {
+  return (
+    <Suspense fallback={<main className="bg-pegasus-dark min-h-screen" />}>
+      <SwapPageInner />
+    </Suspense>
+  );
+}
+
+function SwapPageInner() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
+  const { poolKey, poolId, isCustom, notFound } = useActivePool();
+  const TOKEN_0 = poolKey.currency0;
+  const TOKEN_1 = poolKey.currency1;
   const wrongNetwork = isConnected && chainId !== XLAYER_TESTNET.id;
   const isConfigured =
     CONTRACTS.PEGASUS_HOOK !== "0x0000000000000000000000000000000000000000" &&
@@ -53,13 +64,13 @@ export default function SwapPage() {
     parsedAmount = 0n;
   }
 
-  const fromToken = zeroForOne ? CONTRACTS.TOKEN_A : CONTRACTS.TOKEN_B;
-  const toToken = zeroForOne ? CONTRACTS.TOKEN_B : CONTRACTS.TOKEN_A;
+  const fromToken = zeroForOne ? TOKEN_0 : TOKEN_1;
+  const toToken = zeroForOne ? TOKEN_1 : TOKEN_0;
 
   const { data: tokenInfo } = useReadContracts({
     contracts: [
-      { address: CONTRACTS.TOKEN_A, abi: ERC20_ABI, functionName: "symbol" },
-      { address: CONTRACTS.TOKEN_B, abi: ERC20_ABI, functionName: "symbol" },
+      { address: TOKEN_0, abi: ERC20_ABI, functionName: "symbol" },
+      { address: TOKEN_1, abi: ERC20_ABI, functionName: "symbol" },
     ],
     query: { enabled: isConfigured },
   });
@@ -94,7 +105,7 @@ export default function SwapPage() {
     address: CONTRACTS.PEGASUS_HOOK,
     abi: PEGASUS_HOOK_ABI,
     functionName: "getCurrentFee",
-    args: [POOL_KEY],
+    args: [poolKey],
     query: { enabled: isConfigured, refetchInterval: 5000 },
   });
   const currentFee = currentFeeRaw !== undefined ? Number(currentFeeRaw) : 3000;
@@ -152,7 +163,7 @@ export default function SwapPage() {
       address: CONTRACTS.POOL_SWAP_TEST,
       abi: POOL_SWAP_TEST_ABI,
       functionName: "swap",
-      args: [POOL_KEY, params, testSettings, "0x"],
+      args: [poolKey, params, testSettings, "0x"],
       gas: 5_000_000n,
     });
     setLastTxHash(hash);
@@ -175,6 +186,11 @@ export default function SwapPage() {
           >
             <p className="font-sans text-[10px] tracking-ultrawide uppercase text-white/40 mb-4">
               01 / SWAP · X LAYER TESTNET
+              {isCustom && poolId && (
+                <span className="ml-2 text-purple-glow">
+                  · CUSTOM POOL {poolId.slice(0, 10)}…
+                </span>
+              )}
             </p>
             <h1 className="font-serif text-5xl md:text-6xl font-light leading-none">
               swap

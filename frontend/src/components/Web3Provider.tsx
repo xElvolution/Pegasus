@@ -2,13 +2,23 @@
 
 import { ReactNode, useEffect } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider, createConfig } from "@privy-io/wagmi";
+import { WagmiProvider as PrivyWagmiProvider, createConfig as createPrivyWagmiConfig } from "@privy-io/wagmi";
+import { WagmiProvider, createConfig } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http } from "viem";
 import { useAccount, useSwitchChain } from "wagmi";
 import { xLayerTestnet } from "@/lib/chains";
 
-const wagmiConfig = createConfig({
+// Privy-wagmi config (used when Privy App ID is configured)
+const privyWagmiConfig = createPrivyWagmiConfig({
+  chains: [xLayerTestnet],
+  transports: {
+    [xLayerTestnet.id]: http("https://testrpc.xlayer.tech"),
+  },
+});
+
+// Plain wagmi config (used as fallback when no Privy App ID — keeps build working)
+const fallbackWagmiConfig = createConfig({
   chains: [xLayerTestnet],
   transports: {
     [xLayerTestnet.id]: http("https://testrpc.xlayer.tech"),
@@ -23,7 +33,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   if (!privyAppId) {
     return (
       <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>
+        <WagmiProvider config={fallbackWagmiConfig}>
           {children}
         </WagmiProvider>
       </QueryClientProvider>
@@ -47,9 +57,9 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>
+        <PrivyWagmiProvider config={privyWagmiConfig}>
           <ChainEnforcer>{children}</ChainEnforcer>
-        </WagmiProvider>
+        </PrivyWagmiProvider>
       </QueryClientProvider>
     </PrivyProvider>
   );

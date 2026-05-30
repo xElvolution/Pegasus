@@ -60,24 +60,48 @@ Pegasus combines **on-chain reactive logic** with **off-chain predictive signals
 **Result:** LPs earn 2-3x more fees during volatile periods, and MEV bots pay a
 premium that gets redistributed to liquidity providers instead of extracted.
 
+## The Full Protocol — Not Just a Pool
+
+Pegasus is **permissionless V4 infrastructure**, not a single pool. Anyone can:
+
+1. **Deploy their own ERC20 token** via the on-chain `PegasusFactory` — one
+   click on `/deploy`, no Solidity required.
+2. **Create a V4 pool** with any token pair, automatically wired to the
+   Pegasus hook — `/create-pool`.
+3. **Add liquidity** to their custom pool and become an LP — `/pool?pool=...`.
+4. **Trade through it** with the same MEV protection as the default pool —
+   `/swap?pool=...`.
+5. **Watch live metrics** for their pool — `/dashboard?pool=...`.
+6. **Browse all pools and tokens** ever created via the factory — `/explore`.
+
+Every token is a real ERC20 with bytecode on X Layer. Every pool is a real V4
+pool initialized through PoolManager with the Pegasus hook attached. Every
+swap routes through the same `beforeSwap` logic that protects the default
+pool. The factory contract maintains an on-chain registry so anyone can
+discover and trade in any pool.
+
 ## Live Deployment (X Layer Testnet, chain 1952)
 
 | Contract | Address |
 |---|---|
 | **PegasusHook** | [`0x09988bc8333CB0f40E7619bf3F1BD055c2D1E080`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x09988bc8333CB0f40E7619bf3F1BD055c2D1E080) |
+| **PegasusFactory** | [`0xC0B3f66a7FC7E430e3DCCf55Be16B9459559c31c`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0xC0B3f66a7FC7E430e3DCCf55Be16B9459559c31c) |
 | PoolManager | [`0x7CbaA76c870fFB49bb7567b8da7f7433feC1b949`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x7CbaA76c870fFB49bb7567b8da7f7433feC1b949) |
 | PoolSwapTest | [`0x3ed13A53F0B63070740AE8700708201f1D0Dd7D8`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x3ed13A53F0B63070740AE8700708201f1D0Dd7D8) |
 | PoolModifyLiquidityTest | [`0xB4672c08921d3Ea6A835d08a7BD17535d2EecB28`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0xB4672c08921d3Ea6A835d08a7BD17535d2EecB28) |
 | PEGB (currency0) | [`0x1033e20584B3e8DF7705253F7698c31b592bD4BD`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x1033e20584B3e8DF7705253F7698c31b592bD4BD) |
 | PEGA (currency1) | [`0xE95AA4A81368741194265F2b1ABa29E3ba8FE32D`](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0xE95AA4A81368741194265F2b1ABa29E3ba8FE32D) |
 
-**PoolId:** `0x6023082d3febb10234255fd8c3a6e335dfd7e0938bd2bf299cb86c5018bac836`
+**Default PoolId:** `0x6023082d3febb10234255fd8c3a6e335dfd7e0938bd2bf299cb86c5018bac836`
 
 **First swap proving the hook fires:** [`0x176e9f...`](https://www.okx.com/en-us/web3/explorer/xlayer-test/tx/0x176e9f49e1aada8fe50df9431ed32b34b4291bde99b7ddbc8df29580b76bf27d)
 
 ## Architecture
 
 ```
+   users / dApp ─▶ PegasusFactory.createToken   ─▶ MockERC20 deployed
+                   PegasusFactory.registerPool  ─▶ on-chain pool registry
+
                      ┌──────────────────────────┐
    external swaps ─▶ │  PoolSwapTest (router)   │ ─▶ PoolManager ─▶ PegasusHook.beforeSwap
                      └──────────────────────────┘                      │
@@ -91,16 +115,24 @@ premium that gets redistributed to liquidity providers instead of extracted.
 * **`contracts/contracts/PegasusHook.sol`** — V4 hook. Tracks per-pool price history,
   consecutive same-direction swap counter (MEV signal), and per-block swap count.
   `beforeSwap` returns a fresh fee with `LPFeeLibrary.OVERRIDE_FEE_FLAG` on every
-  swap. Pool init must use the dynamic fee flag (`0x800000`).
+  swap. Pool init must use the dynamic fee flag (`0x800000`). Metric tracking
+  runs on every swap regardless of whether the oracle override is active.
+* **`contracts/contracts/PegasusFactory.sol`** — Permissionless token + pool
+  registry. `createToken` deploys a fresh `MockERC20` and mints initial supply
+  to the caller. `registerPool` indexes a V4 pool so the frontend can discover
+  all pools created via this factory. Emits `TokenCreated` and `PoolRegistered`
+  events for off-chain indexers.
 * **`engine/index.js`** — Off-chain oracle. Reads on-chain pool metrics, smooths
   volatility with an EMA, computes optimal fee, calls `setOracleFee` when the new
   fee differs by ≥200 bps from the last pushed value.
-* **`frontend/`** — Next.js + wagmi + RainbowKit. Pages:
+* **`frontend/`** — Next.js + wagmi + viem + Privy. Pages:
   * `/` — landing
-  * `/swap` — execute real swaps via `PoolSwapTest.swap`
-  * `/pool` — mint test tokens and add liquidity via `PoolModifyLiquidityTest.modifyLiquidity`
-  * `/dashboard` — live reads of `getCurrentFee` + `getPoolMetrics`, subscribes to
-    `FeeUpdated` and `SwapAnalyzed` events for auto-refresh
+  * `/deploy` — deploy your own ERC20 via the factory (one tx, no Solidity)
+  * `/create-pool` — initialize a V4 pool with any token pair + Pegasus hook
+  * `/explore` — browse every token + pool ever created via the factory
+  * `/swap` — execute swaps; supports `?pool=poolId` for custom pools
+  * `/pool` — add liquidity; supports `?pool=poolId` for custom pools
+  * `/dashboard` — live `getCurrentFee` + `getPoolMetrics` reads; supports `?pool=poolId`
 
 ## Prereqs
 
@@ -199,7 +231,7 @@ connect, or add it manually:
 <https://web3.okx.com/xlayer/faucet>. Paste your address, claim, ~30 seconds.
 ~0.1 OKB is more than enough for the whole demo.
 
-### Test sequence
+### Test sequence — Default Pool (PEGA/PEGB)
 
 **Page 1 — `/pool` (get test tokens)**
 
@@ -213,7 +245,7 @@ connect, or add it manually:
 4. Enter `10` in the amount box. The `DYNAMIC FEE` tile reads
    `getCurrentFee` directly from the hook — starts at 0.30%.
 5. Click `APPROVE PEGB` (one-time per token).
-6. Click `SWAP`. Sign in MetaMask. Tx confirms in ~5s. The receipt link goes
+6. Click `SWAP`. Sign in your wallet. Tx confirms in ~5s. The receipt link goes
    to the OKX explorer where you can verify the `SwapAnalyzed` event with the
    exact volatility, MEV counter, and fee the hook computed on-chain.
 7. **Hit `SWAP` two more times in the same direction (don't flip).** After
@@ -224,13 +256,51 @@ connect, or add it manually:
 **Page 3 — `/dashboard` (see everything streaming)**
 
 8. Open `/dashboard` (a second tab works best). It reads `getCurrentFee` and
-   `getPoolMetrics` from the hook every 5s, plus subscribes to `FeeUpdated`
-   and `SwapAnalyzed` events for instant updates.
+   `getPoolMetrics` from the hook every 5s.
 9. Watch the fee chart climb live as you swap. Pool Telemetry shows: total
-   swaps counted on-chain, EMA volatility, MEV signal status, block
-   congestion.
+   swaps counted on-chain, MEV signal status, block congestion.
 10. Flip the swap direction once — `consecutiveDirection` resets to 1, fee
     drops back toward base. The full state machine in action.
+
+### Test sequence — Bring Your Own Tokens (permissionless flow)
+
+This proves Pegasus is real V4 infrastructure, not a single demo pool.
+
+**Page 1 — `/deploy` (launch your own ERC20)**
+
+1. Fill in name (e.g. "My Cool Token"), symbol (e.g. "MCT"), decimals (18),
+   initial supply (e.g. 1,000,000).
+2. Click `DEPLOY TOKEN`. Sign the tx. A fresh `MockERC20` is deployed by the
+   `PegasusFactory` and the supply is minted to your wallet — all in one tx.
+3. Repeat for a second token, e.g. "OtherToken / OTR".
+
+**Page 2 — `/create-pool` (initialize a V4 pool with your tokens)**
+
+4. Paste your two token addresses (or pick from "My Tokens").
+5. Click `INITIALIZE POOL`. This sends two txs in sequence:
+   * `PoolManager.initialize(poolKey, sqrtPriceX96)` — opens the V4 pool with
+     `fee = 0x800000` and `hooks = PegasusHook` attached.
+   * `PegasusFactory.registerPool(...)` — indexes the pool so it shows up in
+     `/explore` for anyone to find.
+6. Success state shows your new poolId + buttons to add liquidity, swap, or
+   view metrics.
+
+**Page 3 — `/pool?pool=YOUR_POOL_ID` (add liquidity to your pool)**
+
+7. Click `MINT` on each token (top up if needed), then `APPROVE`, then
+   `ADD LIQUIDITY`. You're now an LP in a V4 pool you created.
+
+**Page 4 — `/swap?pool=YOUR_POOL_ID` (trade through your pool)**
+
+8. Same MEV-protection logic as the default pool. Three same-direction swaps
+   trigger the fee surge — verifiable on-chain via `SwapAnalyzed` events from
+   YOUR pool.
+
+**Page 5 — `/explore` (browse the protocol)**
+
+9. See every token + every pool ever created via the `PegasusFactory`. Click
+   any pool to swap, LP, or view metrics. This is on-chain discovery — no
+   centralized index.
 
 ### Engine in a terminal (optional but powerful)
 
@@ -246,12 +316,28 @@ connect, or add it manually:
 ### What anyone can verify on the explorer
 
 Every claim is independently checkable. Open the hook contract on the
-[OKX X Layer explorer](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x5eC95C19730eb31F8eE453b76A844Faf89bAe080):
+[OKX X Layer explorer](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0x09988bc8333CB0f40E7619bf3F1BD055c2D1E080):
 
 * Real bytecode (not a proxy, not a stub)
 * Every `SwapAnalyzed` event from every swap, with raw signal numbers
 * Every `FeeUpdated` event with the reason string (`adaptive` / `oracle_override`)
 * Every `setOracleFee` tx from the engine wallet
+
+Open the [PegasusFactory](https://www.okx.com/en-us/web3/explorer/xlayer-test/address/0xC0B3f66a7FC7E430e3DCCf55Be16B9459559c31c) to verify:
+
+* Every `TokenCreated` event — each one deployed a real `MockERC20` with bytecode
+* Every `PoolRegistered` event — each one corresponds to a real V4
+  `PoolManager.initialize` tx
+* `totalTokens()` and `totalPools()` view functions return the live registry
+  size; `getTokens(offset, limit)` and `getPools(offset, limit)` paginate the
+  full list — the same source `/explore` reads from
+
+**Smoke-test transactions (proving the factory works end-to-end):**
+
+* `createToken` test: [`0xb656116b...`](https://www.okx.com/en-us/web3/explorer/xlayer-test/tx/0xb656116b3a0f900770d3d2f2eb2b0eb417aed8c1787d437237295544c9d3419f) — deployed
+  TEST token at `0xd98864D4...`
+* `registerPool` test: [`0xe86848ab...`](https://www.okx.com/en-us/web3/explorer/xlayer-test/tx/0xe86848ab4494c033ecb325cc4dcc1a04e618a324fe6de636f04cf9de2aa73efe) — registered
+  test pool with `PoolRegistered` event
 
 The hook flag bits encoded in its address (`...e080 & 0x3FFF == 0x2080`) are
 cryptographically tied to its declared callbacks — V4 would reject pool init
